@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sed -i \
+	-e 's/accept_source_cb,0);$/accept_source_cb,0); add_action_buttons();/' \
+	-e 's,#include "forms.h",#include <GL/glx.h>\n#include <X11/forms.h>,' \
+	mmodel_ui.c
+

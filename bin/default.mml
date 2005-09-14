@@ -1,0 +1,93 @@
+# This builds a kind of giraffe
+# Lines starting with '#' are comments.
+
+cube
+newsel	edge
+select	\1	8
+select	\1	9
+cut	\1	1	\1
+connect	\1	\1
+trans	\1	\2	-0.100000
+select	\1	4
+select	\1	0
+cut	\1	1	\2
+connect	\2	\3
+trans	\2	\2	-0.100000
+convert	\2	facet	1
+remove	\2	4
+remove	\2	5
+extr1	\2	0	\0	1.400000	0.400000	\0
+extr1	\2	0	\0	1.000000	1.000000	\0
+extr1	\2	0	\0	1.600000	0.600000	\0
+extr1	\2	0	\0	0.400000	1.700000	\0
+newsel	vertex
+select	\4	19
+select	\4	7
+select	\4	3
+connect	\4	\0
+stretch	\4	\0	\3	0.600000
+trans	\4	\2	0.500000
+empty	\4
+select	\4	19
+trans	\4	-0.800000,1.000000,0.000000	0.500000
+newsel	facet
+select	\5	73
+extr1	\5	0	\4	3.000000	0.300000	\0
+empty	\1
+select	\1	10
+scale	\1	\0	0.600000
+convert	\1	vertex	0
+select	\1	27
+connect	\1	\0
+convert	\1	facet	0
+extr1	\1	0	\4	-1.800000	0.400000	\0
+newsel	vertex
+select	\6	27
+trans	\6	\4	0.500000
+extr1	\1	0	\0	1.000000	0.200000	\0
+newsel	vertex
+select	\7	81
+trans	\7	\4	-0.200000
+newsel	vertex
+select	\8	28
+select	\8	79
+select	\8	78
+select	\8	23
+connect	\8	\8
+empty	\3
+select	\3	163
+stretch	\3	\0	\3	0.600000
+extr1	\1	0	\0	0.300000	3.000000	\0
+extr1	\1	0	\0	0.600000	0.100000	\0
+select	\7	28
+select	\7	23
+trans	\7	\2	-0.400000
+select	\6	84
+select	\6	80
+select	\6	82
+connect	\6	\0
+extr1	\5	0	\0	0.400000	1.900000	\1
+trans	\4	\1	-1.000000
+empty	\7
+select	\7	3
+select	\7	7
+bevel	\7	0.200000	\9
+extr1	\9	0	\0	1.000000	0.900000	\0
+bevel	\4	0.500000	\1
+add	\9	\1
+extr1	\9	0	\0	0.100000	2.000000	\0
+extr1	\9	0	\0	0.300000	1.000000	\0
+
+# Smooth everything 3 times 
+
+toggle	\4
+bevsmooth	\4	2
+
+planecut	\4	0.00001,0.00001,0.0001	\1	\4
+connect	\4	\4
+separate \4 \4
+
+empty	\1
+select	\1	1
+propagate	\1	60
+trans	\1	\1	0.500000
