@@ -108,6 +108,10 @@ void GridSel_apply_homotecy(GridSel *sel, Vec *center, Vec *axis, double ratio, 
 		if (center) Vec_sub(pos, center);
 		homotecy(pos, axis, ratio);
 		if (center) Vec_add(pos, center);
+		for (unsigned f=0; f<Vertex_size(v); f++) {
+			Facet *facet = Vertex_get_facet(v, f);
+			if (facet) Facet_invalidate_normal(facet);
+		}
 	}
 	if (tmp_used) GridSel_destruct(&tmp);
 }

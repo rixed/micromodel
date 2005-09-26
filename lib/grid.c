@@ -107,17 +107,17 @@ static int Grid_construct(void) {	// build an empty (invalid) grid
 	this_grid->selections = this_grid->vertices = this_grid->edges = this_grid->facets = NULL;
 	this_grid->next_vertex = this_grid->next_edge = this_grid->next_facet = 0;
 	this_grid->selections = cntHash_new(sizeof(GridSel), 50, 1, cntHash_INTKEYS, 0);
-	if (!this_grid->selections) goto fail;
+	if (! this_grid->selections) goto fail;
 	this_grid->vertices = cntHash_new(sizeof(Vertex), Grid_get_carac_size(), 3, cntHash_INTKEYS, 0);
-	if (!this_grid->vertices) goto fail;
+	if (! this_grid->vertices) goto fail;
 	this_grid->edges = cntHash_new(sizeof(Edge), Grid_get_carac_size(), 3, cntHash_INTKEYS, 0);
-	if (!this_grid->edges) goto fail;
+	if (! this_grid->edges) goto fail;
 	this_grid->facets = cntHash_new(sizeof(Facet), Grid_get_carac_size(), 3, cntHash_INTKEYS, 0);
-	if (!this_grid->facets) goto fail;
+	if (! this_grid->facets) goto fail;
 	this_grid->bases = cntHash_new(sizeof(Basis), 25, 3, cntHash_INTKEYS, 0);
-	if (!this_grid->bases) goto fail;
+	if (! this_grid->bases) goto fail;
 	this_grid->colors = cntHash_new(sizeof(Color), 35, 3, cntHash_INTKEYS, 0);
-	if (!this_grid->colors) goto fail;
+	if (! this_grid->colors) goto fail;
 	return 1;
 fail:
 	Grid_destruct();
@@ -170,7 +170,7 @@ GridSel *Grid_new_selection_(unsigned name, GridSel_type type) {
 	}
 	GridSel *sel = cntHash_put(this_grid->selections, key, NULL);
 	assert(sel);
-	if (!GridSel_construct(sel, type)) {
+	if (! GridSel_construct(sel, type)) {
 		cntHash_remove(this_grid->selections, key);
 		return NULL;
 	}
@@ -179,14 +179,14 @@ GridSel *Grid_new_selection_(unsigned name, GridSel_type type) {
 
 void output_selection(unsigned selection, GridSel *sel, unsigned result_selection, GridSel *my_result) {
 	assert(selection>0 && sel && my_result);
-	if (!result_selection) {
+	if (! result_selection) {
 		GridSel_destruct(my_result);
 	} else if (result_selection == selection) {
 		GridSel_destruct(sel);
 		*sel = *my_result;
 	} else {
 		GridSel *res = Grid_get_selection(result_selection);
-		if (!res) {
+		if (! res) {
 			res = Grid_new_selection_(result_selection, my_result->type);
 			assert(res);
 		}
@@ -206,8 +206,8 @@ GridSel *Grid_get_selection(unsigned name) {
 
 int Grid_new(void) {	// alloc an empty (invalid) Grid
 	this_grid = mem_alloc(sizeof(*this_grid));
-	if (!this_grid) return 0;
-	if (!Grid_construct()) {
+	if (! this_grid) return 0;
+	if (! Grid_construct()) {
 		mem_unregister(this_grid);
 		return 0;
 	}
@@ -236,7 +236,7 @@ Vertex *Grid_vertex_new(const Vec *position, unsigned bi, float ratio, float uv_
 	assert(this_grid && position && (bi>0 || ratio==0.));
 	Vertex *v = cntHash_put(this_grid->vertices, (cntHashkey){ .i = this_grid->next_vertex }, NULL);
 	assert(v);
-	if (!Vertex_construct(v, this_grid->next_vertex, position, bi, ratio, uv_x, uv_y)) return NULL;
+	if (! Vertex_construct(v, this_grid->next_vertex, position, bi, ratio, uv_x, uv_y)) return NULL;
 	this_grid->next_vertex ++;
 	return v;
 }
@@ -244,7 +244,7 @@ Vertex *Grid_vertex_average_new(const Vertex *v1, const Vertex *v2, double ratio
 	assert(v1 && v2);
 	Vertex *v = cntHash_put(this_grid->vertices, (cntHashkey){ .i = this_grid->next_vertex }, NULL);
 	assert(v);
-	if (!Vertex_construct_average(v, this_grid->next_vertex, v1, v2, ratio)) return NULL;
+	if (! Vertex_construct_average(v, this_grid->next_vertex, v1, v2, ratio)) return NULL;
 	this_grid->next_vertex ++;
 	return v;
 }
@@ -305,7 +305,7 @@ void Grid_replace_facet(Facet *f, Vertex *rep) {
 
 Edge *Grid_edge_cut(Edge *edge, double ratio) {
 	// edge stay the south part ; return the new edge, at north.
-	if (!this_grid) return NULL;
+	if (! this_grid) return NULL;
 	assert(edge);
 	Vertex *vS = Edge_get_vertex(edge, SOUTH);
 	Vertex *vN = Edge_get_vertex(edge, NORTH);
@@ -340,13 +340,44 @@ static void shear(Vec *pos, Vec *axis, double ratio) {
 	Vec_scale(&disp, e*ratio);
 	Vec_add(pos, &disp);
 }
+static void rotate(Vec *pos, Vec *axis, double angle) {
+	Vec m0, m1, m2;
+	Vec new_pos;
+	double c = cos(angle);
+	double s = sin(angle);
+	Vec_construct(&m0,
+		c + (1-c)*Vec_coord(axis, 0)*Vec_coord(axis, 0),
+		(1-c)*Vec_coord(axis, 0)*Vec_coord(axis, 1) - s*Vec_coord(axis, 2),
+		(1-c)*Vec_coord(axis, 0)*Vec_coord(axis, 2) + s*Vec_coord(axis, 1)
+	);
+	Vec_construct(&m1,
+		(1-c)*Vec_coord(axis, 0)*Vec_coord(axis, 1) + s*Vec_coord(axis, 2),
+		c + (1-c)*Vec_coord(axis, 1)*Vec_coord(axis, 1),
+		(1-c)*Vec_coord(axis, 1)*Vec_coord(axis, 2) - s*Vec_coord(axis, 0)
+	);
+	Vec_construct(&m2,
+		(1-c)*Vec_coord(axis, 0)*Vec_coord(axis, 2) - s*Vec_coord(axis, 1),
+		(1-c)*Vec_coord(axis, 1)*Vec_coord(axis, 2) + s*Vec_coord(axis, 0),
+		c + (1-c)*Vec_coord(axis, 2)*Vec_coord(axis, 2)
+	);
+	Vec_construct(&new_pos,
+		Vec_scalar(&m0, pos),
+		Vec_scalar(&m1, pos),
+		Vec_scalar(&m2, pos)
+	);
+	Vec_destruct(pos);
+	*pos = new_pos;
+	Vec_destruct(&m0);
+	Vec_destruct(&m1);
+	Vec_destruct(&m2);
+}
 static void translate(Vec *pos, Vec *axis, double ratio) {
 	Vec_add(pos, axis);
 }
 
 static void apply_homotecy(unsigned selection, Vec *center, Vec *axis, double ratio, void (*homotecy)(Vec *, Vec *, double)) {
 	assert(this_grid && homotecy);
-	if (!selection) return;
+	if (! selection) return;
 	GridSel *sel = Grid_get_selection(selection);
 	assert(sel);
 	GridSel_apply_homotecy(sel, center, axis, ratio, homotecy);
@@ -371,6 +402,13 @@ void Grid_shear(unsigned selection, Vec *center, Vec *axis, double ratio) {
 	apply_homotecy(selection, center, &norm_axis, ratio, shear);
 }
 
+void Grid_rotate(unsigned selection, Vec *center, Vec *axis, double angle) {
+	assert(center && axis);
+	Vec norm_axis = *axis;
+	Vec_normalize(&norm_axis);
+	apply_homotecy(selection, center, &norm_axis, angle, rotate);
+}
+
 void Grid_translate(unsigned selection, Vec *disp, double ratio) {
 	assert(disp);
 	Vec long_disp = *disp;
@@ -381,7 +419,7 @@ void Grid_translate(unsigned selection, Vec *disp, double ratio) {
 /* Building Functions */
 
 int Grid_extrude(unsigned name, bool dir_vertex, Vec *direction, double ratio, unsigned result_selection) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	GridSel my_result = GridSel_extrude(sel, dir_vertex, direction, ratio);
@@ -391,7 +429,7 @@ int Grid_extrude(unsigned name, bool dir_vertex, Vec *direction, double ratio, u
 
 int Grid_extrude_1by1(unsigned name, bool dir_vertex, Vec *direction, double ratio, double scale_ratio, unsigned result_selection) {
 	// meme chose, mais sur une selection qui fait une face par une face
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel && sel->type==GridSel_FACET);
 	GridSel my_result, single_facet;
@@ -419,7 +457,7 @@ int Grid_extrude_1by1(unsigned name, bool dir_vertex, Vec *direction, double rat
 }
 
 int Grid_cut(unsigned selection, unsigned nb_cuts, unsigned result_selection) {
-	if (!this_grid || !selection || !nb_cuts) return 0;
+	if (! this_grid || ! selection || ! nb_cuts) return 0;
 	GridSel *sel = Grid_get_selection(selection);
 	assert(sel);
 	GridSel my_result;
@@ -448,7 +486,7 @@ int Grid_cut(unsigned selection, unsigned nb_cuts, unsigned result_selection) {
 
 #include <float.h>
 int Grid_plane_cut(unsigned selection, unsigned result_selection, Vec *center, Vec *normal) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	GridSel *sel = Grid_get_selection(selection);
 	assert(sel);
 	GridSel my_result;
@@ -478,9 +516,9 @@ int Grid_plane_cut(unsigned selection, unsigned result_selection, Vec *center, V
 }
 
 int Grid_connect(unsigned selection, unsigned result_selection, bool full_connect) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	GridSel *sel = Grid_get_selection(selection);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	if (sel->type != GridSel_VERTEX) {
 		log_warning(LOG_IMPORTANT, "Cannot connect non-vertex selection");
 		return 0;
@@ -491,9 +529,9 @@ int Grid_connect(unsigned selection, unsigned result_selection, bool full_connec
 }
 
 int Grid_zap(unsigned selection) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	GridSel *sel = Grid_get_selection(selection);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	GridSel tmp_sel;
 	switch (sel->type) {
 		case GridSel_FACET:
@@ -521,9 +559,9 @@ int Grid_zap(unsigned selection) {
 }
 
 int Grid_bevel(unsigned name, unsigned result_selection, double ratio) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	GridSel my_result;
 	switch (sel->type) {
 		case GridSel_VERTEX: ;
@@ -549,7 +587,7 @@ int Grid_bevel(unsigned name, unsigned result_selection, double ratio) {
 }
 
 int Grid_bevsmooth(unsigned name, unsigned level) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	Grid_convert_selection(name, GridSel_FACET, GridSel_MAX);
 	while (level>0) {
 		Grid_bevel(name, name, 0.3);
@@ -561,18 +599,18 @@ int Grid_bevsmooth(unsigned name, unsigned level) {
 }
 
 int Grid_smooth(unsigned name, unsigned level, double softness, unsigned result_selection) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	GridSel my_result = GridSel_smooth(sel, level, softness);
 	output_selection(name, sel, result_selection, &my_result);
 	return 1;
 }
 
 int Grid_separate(unsigned name, unsigned result_selection) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	GridSel my_result = GridSel_separate(sel);
 	output_selection(name, sel, result_selection, &my_result);
 	return 1;
@@ -585,7 +623,7 @@ int Grid_new_selection(unsigned name, GridSel_type type) {
 }
 
 int Grid_del_selection(unsigned name) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	(void)GridSel_destruct(sel);
@@ -594,7 +632,7 @@ int Grid_del_selection(unsigned name) {
 }
 
 int Grid_empty_selection(unsigned name) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	GridSel_clear(sel);
@@ -602,7 +640,7 @@ int Grid_empty_selection(unsigned name) {
 }
 
 int Grid_addsingle_to_selection(unsigned name, unsigned index) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	cntHashkey key = { .ptr = get_elmnt_from_index(sel->type, index) };
@@ -615,7 +653,7 @@ int Grid_addsingle_to_selection(unsigned name, unsigned index) {
 }
 
 int Grid_subsingle_from_selection(unsigned name, unsigned index) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	cntHashkey key = { .ptr = get_elmnt_from_index(sel->type, index) };
@@ -636,7 +674,7 @@ int Grid_sub_from_selection(unsigned name_dest, unsigned name_src) {
 }
 
 int Grid_toggle_selection(unsigned name) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	GridSel_toggle_selection(sel);
@@ -644,7 +682,7 @@ int Grid_toggle_selection(unsigned name) {
 }
 
 int Grid_convert_selection(unsigned name, GridSel_type type, GridSel_convert_type convert_type) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
 	assert(sel);
 	if (type == sel->type) return 1;
@@ -656,7 +694,7 @@ int Grid_convert_selection(unsigned name, GridSel_type type, GridSel_convert_typ
 }
 
 int Grid_propagate_selection(unsigned name, unsigned level) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	GridSel *sel = Grid_get_selection(name);
    assert(sel);
 	GridSel_propagate(sel, level);
@@ -664,7 +702,7 @@ int Grid_propagate_selection(unsigned name, unsigned level) {
 }
 
 int Grid_replace_in_selections(GridSel_type type, void *old_elmnt, void *new_elmnt) {
-	if (!this_grid) return 0;
+	if (! this_grid) return 0;
 	cntHash_reset(this_grid->selections);
 	void *ptr;
 	while (cntHash_each(this_grid->selections, NULL, &ptr)) {
@@ -681,21 +719,21 @@ int Grid_replace_in_selections(GridSel_type type, void *old_elmnt, void *new_elm
 
 int Grid_new_basis(unsigned name, unsigned father, Vec *pos, Vec *x, Vec *y, Vec *z) {
 	assert(pos && x && y && z);
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	cntHashkey key = { .i = name };
 	if (cntHash_get(this_grid->bases, key)) {
 		return 0;
 	}
 	Basis *basis = cntHash_put(this_grid->bases, key, NULL);
 	assert(basis);
-	if (!Basis_construct(basis, father, pos, x,y,z)) {
+	if (! Basis_construct(basis, father, pos, x,y,z)) {
 		cntHash_remove(this_grid->bases, key);
 		return 0;
 	}
 	return 1;
 }
 int Grid_del_basis(unsigned name) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	Basis *basis = Grid_get_basis(name);
 	assert(basis);
 	Basis_destruct(basis);
@@ -721,23 +759,23 @@ int Grid_del_basis(unsigned name) {
 }
 
 int Grid_set_selection_hardskin(unsigned selection, unsigned basis) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	return GridSel_set_hardskin(Grid_get_selection(selection), basis);
 }
 
 int Grid_set_selection_softskin(unsigned selection, unsigned bi) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	return GridSel_set_softskin(Grid_get_selection(selection), bi);
 }
 
 int Grid_mapping(unsigned selection, GridSel_mapping_type type, const Vec *pos, float scale_x, float scale_y, float offset_x, float offset_y, bool along_normals) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	GridSel_mapping(Grid_get_selection(selection), type, pos, scale_x, scale_y, offset_x, offset_y, along_normals);
 	return 1;
 }
 
 int Grid_set_uv(unsigned selection, float uv_x, float uv_y) {
-	if (!this_grid || !selection) return 0;
+	if (! this_grid || ! selection) return 0;
 	GridSel_set_uv(Grid_get_selection(selection), uv_x, uv_y);
 	return 1;
 }
@@ -772,14 +810,14 @@ unsigned Grid_basis_original(unsigned name) {
 /* Colors functions */
 
 int Grid_new_color(unsigned name, float r, float g, float b) {
-	if (!this_grid || !name) return 0;
+	if (! this_grid || ! name) return 0;
 	cntHashkey key = { .i = name };
 	if (cntHash_get(this_grid->colors, key)) {
 		return 0;
 	}
 	Color *color = cntHash_put(this_grid->colors, key, NULL);
 	assert(color);
-	if (!Color_construct(color, r,g,b)) {
+	if (! Color_construct(color, r,g,b)) {
 		cntHash_remove(this_grid->colors, key);
 		return 0;
 	}
@@ -787,7 +825,7 @@ int Grid_new_color(unsigned name, float r, float g, float b) {
 }
 
 int Grid_del_color(unsigned name) {
-	if (!name) return 0;
+	if (! name) return 0;
 	Color *color = Grid_get_color(name);
 	assert(color);
 	Color_destruct(color);
@@ -802,7 +840,7 @@ int Grid_del_color(unsigned name) {
 }
 
 int Grid_set_selection_color(unsigned selection, unsigned color) {
-	if (!selection) return 0;
+	if (! selection) return 0;
 	return GridSel_set_color(Grid_get_selection(selection), color);
 }
 
@@ -896,33 +934,33 @@ unsigned Grid_each_selection(void) {
 
 bool Grid_selected(unsigned name, void *elmnt) {
 	assert(this_grid);
-	if (!name) return false;
+	if (! name) return false;
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	return GridSel_selected(sel, elmnt);
 }
 
 unsigned Grid_selection_size(unsigned name) {
-	if (!name) return 0;
+	if (! name) return 0;
 	assert(this_grid);
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return 0;
+	if (! sel) return 0;
 	return GridSel_size(sel);
 }
 
 void Grid_reset_selection(unsigned name) {
 	assert(this_grid);
-	if (!name) return;
+	if (! name) return;
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return;
+	if (! sel) return;
 	cntHash_reset(sel->elmnts);
 }
 
 void *Grid_each_selected(unsigned name) {
 	assert(this_grid);
-	if (!name) return NULL;
+	if (! name) return NULL;
 	GridSel *sel = Grid_get_selection(name);
-	if (!sel) return NULL;
+	if (! sel) return NULL;
 	return GridSel_each(sel);
 }
 

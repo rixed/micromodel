@@ -48,6 +48,7 @@ void Grid_scale(unsigned selection, Vec *center, double ratio);
 void Grid_stretch(unsigned selection, Vec *center, Vec *axis, double ratio);
 void Grid_shear(unsigned selection, Vec *center, Vec *axis, double ratio);
 void Grid_translate(unsigned selection, Vec *translation, double ratio);
+void Grid_rotate(unsigned selection, Vec *center, Vec *axis, double angle);
 
 int Grid_extrude(unsigned selection, bool dir_vertex, Vec *direction, double ratio, unsigned result_selection);
 int Grid_extrude_1by1(unsigned selection, bool dir_vertex, Vec *direction, double ratio, double scale, unsigned result_selection);

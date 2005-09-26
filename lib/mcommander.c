@@ -67,6 +67,7 @@ static int scale(void);
 static int stretch(void);
 static int shear(void);
 static int translate(void);
+static int rotate(void);
 
 static int new_basis(void);
 static int hardskin(void);
@@ -312,8 +313,19 @@ static const struct {
 			{ MCom_VEC, "Displacement" },
 			{ MCom_REAL, "Ratio" },
 		}
-	},
+	}, {
+		rotate,
+		"Rotate",
+		"Rotate selected vertices",
+		"rot",
+		4,
 		{
+			{ MCom_SEL, "The selection" },
+			{ MCom_VEC, "Center" },
+			{ MCom_VEC, "Axis" },
+			{ MCom_REAL, "Angle (rad)" },
+		}
+	}, {
 		new_selection,
 		"Select",
 		"Create a new selection",
@@ -804,6 +816,10 @@ static int translate(void) {
 	Grid_translate(get_sel(0), get_vec(1), get_real(2));
 	return 1;
 }
+static int rotate(void) {
+	Grid_rotate(get_sel(0), get_vec(1), get_vec(2), get_real(3));
+	return 1;
+}
 static int new_basis(void) {
 	return Grid_new_basis(next_basis_name, get_basis(0), get_vec(1), get_vec(2), get_vec(3), get_vec(4));
 }
@@ -1063,13 +1079,13 @@ unsigned char MCom_query_nb_groups(void) {
 	return 5;
 }
 unsigned char MCom_query_sizeof_group(unsigned char group) {
-	static const unsigned char sizeof_group[] = { NB_PRIMITIVES, 11, 4, 9, 15 };
+	static const unsigned char sizeof_group[] = { NB_PRIMITIVES, 11, 5, 9, 15 };
 	assert(group < sizeof(sizeof_group)/sizeof(*sizeof_group));
 	return sizeof_group[group];
 }
 const char *MCom_query_group_name(unsigned char group) {
 	assert(group < MCom_query_nb_groups());
-	static const char *group_name[] = { "New", "Transformations", "Deformation", "Selection", "Misc" };
+	static const char *group_name[] = { "New", "Transformations", "Deformations", "Selections", "Misc." };
 	return group_name[group];
 }
 const char *MCom_query_command_name(unsigned char command) {
@@ -1207,11 +1223,11 @@ const char *MCom_last_cmd_geta(void) {
 				strcat(geta_buf, selType_names[current.params[param].uc]);
 				break;
 			case MCom_VEC:
-				sprintf(str_tmp, "%f,%f,%f", Vec_coord(&current.params[param].vec, 0), Vec_coord(&current.params[param].vec, 1), Vec_coord(&current.params[param].vec, 2));
+				sprintf(str_tmp, "%g,%g,%g", Vec_coord(&current.params[param].vec, 0), Vec_coord(&current.params[param].vec, 1), Vec_coord(&current.params[param].vec, 2));
 				strcat(geta_buf, str_tmp);
 				break;
 			case MCom_REAL:
-				sprintf(str_tmp, "%f", (double)current.params[param].real);
+				sprintf(str_tmp, "%g", (double)current.params[param].real);
 				strcat(geta_buf, str_tmp);
 				break;
 			case MCom_BASIS:

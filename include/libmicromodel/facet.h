@@ -32,6 +32,7 @@ Vertex *Facet_get_vertex(const Facet *this, unsigned order);
 Facet *Facet_get_facet(const Facet *this, unsigned order);
 
 const Vec *Facet_normal(Facet *this);
+void Facet_invalidate_normal(Facet *this);
 const Vec *Facet_center(Facet *this);
 
 #include <stdbool.h>

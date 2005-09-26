@@ -374,6 +374,11 @@ const Vec *Facet_normal(Facet *this) {
 	return &this->normal;
 }
 
+void Facet_invalidate_normal(Facet *this) {
+	assert(this);
+	this->normal_ok = false;
+}
+
 const Vec *Facet_center(Facet *this) {
 	assert(this);
 	static Vec center;
