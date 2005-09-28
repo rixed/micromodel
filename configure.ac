@@ -3,9 +3,9 @@
 
 AC_PREREQ(2.59)
 AC_INIT()
-AM_INIT_AUTOMAKE(libmicromodel, 1.2)
+AM_INIT_AUTOMAKE(libmicromodel, 1.1)
 
-BACK_COMPAT=2
+BACK_COMPAT=0
 VERSION_INFO=`echo $VERSION | sed -e 's/\./:/'`:$BACK_COMPAT
 AC_SUBST(VERSION_INFO)
 
@@ -21,6 +21,14 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+
+GEOMVIEWDIR="$prefix"
+AC_ARG_WITH(
+	geomview,
+	AC_HELP_STRING([--with-geomview=path], [Set geomview installation path]),
+	[GEOMVIEWDIR="$withval"],
+)
+AC_SUBST(GEOMVIEWDIR)
 
 # Checks for libraries.
 

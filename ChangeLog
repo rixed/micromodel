@@ -1,8 +1,8 @@
 2005-09-26 Cedric Cellier <rixed@happyleptic.org>
 
 	* Bufgix fix facet normal after homotetic command.
-	* Addition o a rotate command.
-	* commit v1.2.
+	* Addition of a rotate command.
+	* Better packaging of geomview plugin.
 
 2005-09-14 Cedric Cellier <rixed@happyleptic.org>
 

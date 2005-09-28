@@ -7,7 +7,9 @@ CFLAGS = -O2
 endif
 
 if MMODELER
-bin_PROGRAMS = mmodeler
+geomplugdir = $(GEOMVIEWDIR)/lib/geomview
+geomplug_DATA = .geomview-micromodel
+geomplug_PROGRAMS = mmodeler
 mmodeler_SOURCES = \
 	mmodeler.c \
 	mmodel_ui.c \
@@ -23,4 +25,6 @@ mmodeler_SOURCES = \
 
 mmodeler_LDADD = ../lib/libmicromodel.la -lm
 endif
+
+EXTRA_DIST = .geomview-micromodel
 
