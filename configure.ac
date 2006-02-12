@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT()
-AM_INIT_AUTOMAKE(libmicromodel, 1.1)
+AM_INIT_AUTOMAKE(libmicromodel, 1.2)
 
 BACK_COMPAT=0
 VERSION_INFO=`echo $VERSION | sed -e 's/\./:/'`:$BACK_COMPAT

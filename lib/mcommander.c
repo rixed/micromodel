@@ -34,12 +34,14 @@ static const char *type_names[MCom_NB_TYPES] = {
 };
 static bool ret_was_found;
 
-#define NB_PRIMITIVES 5
+#define NB_PRIMITIVES 7
 static int tetrahedron(void);
 static int cube(void);
 static int octahedron(void);
 static int icosahedron(void);
 static int dodecahedron(void);
+static int triangle(void);
+static int square(void);
 
 static int extrude(void);
 static int extrude_1by1(void);
@@ -101,7 +103,7 @@ static const struct {
 } commands[] = {
 	{
 		tetrahedron,
-		"Tetrahedron",
+		"Tetra.",
 		"This creates a new grid\nin the shape of a tetrahedron",
 		"tetrahedron",
 		1,
@@ -119,7 +121,7 @@ static const struct {
 		}
 	}, {
 		octahedron,
-		"Octahedron",
+		"Octa.",
 		"This creates a new grid\nin the shape of an octahedron",
 		"octahedron",
 		1,
@@ -128,7 +130,7 @@ static const struct {
 		}
 	}, {
 		icosahedron,
-		"Icosahedron",
+		"Icosa.",
 		"This creates a new grid\nin the shape of an icosahedron",
 		"icosahedron",
 		1,
@@ -137,9 +139,27 @@ static const struct {
 		}
 	}, {
 		dodecahedron,
-		"Dodecahedron",
+		"Dodec.",
 		"This creates a new grid\nin the shape of an dodecahedron",
 		"dodecahedron",
+		1,
+		{
+			{ MCom_SEL, "To store the result" },
+		}
+	}, {
+		triangle,
+		"Triangle",
+		"This creates a flat equilateral triangle pointing towards X",
+		"triangle",
+		1,
+		{
+			{ MCom_SEL, "To store the result" },
+		}
+	}, {
+		square,
+		"Square",
+		"This creates a flat square\n",
+		"square",
 		1,
 		{
 			{ MCom_SEL, "To store the result" },
@@ -737,6 +757,12 @@ static int icosahedron(void) {
 }
 static int dodecahedron(void) {
 	return Grid_dodecahedron(get_sel(0));
+}
+static int triangle(void) {
+	return Grid_triangle(get_sel(0));
+}
+static int square(void) {
+	return Grid_square(get_sel(0));
 }
 static int extrude(void) {
 	return Grid_extrude(get_sel(0), get_boolean(1), get_vec(2), get_real(3), get_sel(4));

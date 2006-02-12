@@ -1,3 +1,7 @@
+2006-02-12 Cedric Cellier <rixed@happyleptic.org>
+
+	* Add triangle and square primitives.
+
 2005-09-26 Cedric Cellier <rixed@happyleptic.org>
 
 	* Bufgix fix facet normal after homotetic command.

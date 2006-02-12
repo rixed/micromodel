@@ -60,7 +60,6 @@ static int add_from_geometry(unsigned name, unsigned nb_vertices, const float (*
 
 #include <stdio.h>
 int Grid_tetrahedron(unsigned name) {
-	fprintf(stderr, "%u\n", name);
 #	define a .5
 	static const float vertices[][3] = {
 		{ a, a, a }, {-a, a,-a }, { a,-a,-a }, {-a,-a, a },
@@ -161,3 +160,30 @@ int Grid_dodecahedron(unsigned name) {
 	return add_from_geometry(name, sizeof(vertices)/sizeof(*vertices), vertices, sizeof(edges)/sizeof(*edges), edges, 12, 5, facets);
 }
 
+int Grid_triangle(unsigned name) {	// not a platonic solid, but ...
+#	define a .86602540378443864676
+	static const float vertices[][3] = {
+		{ 1, 0, 0 }, {-.5, a, 0 } , {-.5,-a, 0 },
+	};
+	static const unsigned short edges[][2] = {
+		{ 0, 1 }, { 1, 2 }, { 2, 0 },
+	};
+	static const unsigned short facets[] = {
+		0,1,2, 2,1,0,
+	};
+#	undef a
+	return add_from_geometry(name, sizeof(vertices)/sizeof(*vertices), vertices, sizeof(edges)/sizeof(*edges), edges, 2, 3, facets);
+}
+
+int Grid_square(unsigned name) {	// not a platonic solid, neither ...
+	static const float vertices[][3] = {
+		{ 1, 1, 0 }, {-1, 1, 0 } , {-1,-1, 0 }, { 1,-1, 0},
+	};
+	static const unsigned short edges[][2] = {
+		{ 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }
+	};
+	static const unsigned short facets[] = {
+		0,1,2,3, 3,2,1,0,
+	};
+	return add_from_geometry(name, sizeof(vertices)/sizeof(*vertices), vertices, sizeof(edges)/sizeof(*edges), edges, 2, 4, facets);
+}

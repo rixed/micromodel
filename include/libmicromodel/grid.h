@@ -41,6 +41,8 @@ int Grid_cube(unsigned name);
 int Grid_octahedron(unsigned name);
 int Grid_icosahedron(unsigned name);
 int Grid_dodecahedron(unsigned name);
+int Grid_triangle(unsigned name);
+int Grid_square(unsigned name);
 
 void Grid_size(unsigned *nb_vertices, unsigned *nb_edges, unsigned *nb_facets);
 
