@@ -48,7 +48,7 @@ void Edge_add_facet(Edge *this, Facet *facet, EdgeSide side);
 void Edge_change_facet(Edge *this, Facet *from, Facet *to);
 void Edge_change_vertex(Edge *this, Vertex *from, Vertex *to);
 void Edge_remove_facet(Edge *this, Facet *facet);
-void Edge_set_vertex(Edge *this, EdgeSide pole, Vertex *new);
+void Edge_set_vertex(Edge *this, EdgePole pole, Vertex *new);
 void Edge_cut(Edge *this, Edge *new, Vertex *v);
 bool edges_are_connected(Edge *e0, Edge *e1);
 void Edge_zap(Edge *this);
